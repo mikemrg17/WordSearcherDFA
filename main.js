@@ -23,7 +23,7 @@ function readFileAsText(){
 }
 
 function searchWords (text){
-    console.log(text);
+    //console.log(text);
     for(let i = 0; i < text.length; i++){
         search(text[i])
     }
