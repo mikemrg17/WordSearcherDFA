@@ -1,13 +1,15 @@
-//COUNTERS
+//Words COUNTERS
 let webCounter = 0;
+let weCounter = 0;
 let webayCounter = 0;
 let ebayCounter = 0;
 let elseCounter = 0;
 let webMasterCounter = 0;
 let webPageCounter = 0;
+let webSiteCounter = 0;
 
 //PATH
-let path = "";
+let path;
 
 //STATES
 let state27 = {name: "1,5,27", access: "y", children: [], type: "finalState"}
@@ -40,15 +42,84 @@ let state1 = {name: "1", access: "", children: [state2,state9], type: "initialSt
 
 
 //CURRENT STATE
-/*First, the initial state is state1*/
+/*Initial state is state1*/
 let currentState = state1;
+let nextState;
 
-//FUNCTION
-function search(index){
-    return;
+//FUNCTIONALITY
+let text;
+let index;
+/*Set the data received to a local variable*/
+function setText(data){
+    text = data;
+    index = 0;
+    path = "path: ";
+    findWords(index, currentState);
 }
 
-export default search;
+function findWords(index, currentState){
+    if(index == text.length-1){
+        console.log(path);
+        console.log("Process completed");
+    }else{
+        /*1. Validar si tiene hijos es estado*/
+        if(hasChildren(currentState) != false ){
+            console.log("has children");  
+        }else{
+            console.log("No children");
+        }
+        findWords(++index,currentState);
+    }
+}
+
+/*for(let c = 0; c < currentState.children.length; c++){
+                console.log("Primer for");
+                if(text[index] == currentState.children[c].access){
+                    currentState = currentState.children[c];
+                    console.log(currentState.name);
+                    path = path + "->" +  currentState.name;
+                    break;
+                }else{
+                    currentState = state1;
+                }
+            } */
+
+/*Function to validate if the current state has children*/ 
+function hasChildren(currentState){
+    let childrenValidation;
+    if(currentState.children.length = 0){
+        childrenValidation = false;
+    }else{
+        childrenValidation = true;
+    }
+    
+    if(isFinalState(currentState) == true){
+        if(currentState == state27){webayCounter++;}
+        else if(currentState == state25){webMasterCounter++}
+        else if(currentState == state19){webPageCounter++}
+        else if(currentState == state15){webSiteCounter++}
+        else if(currentState == state11){webCounter++}
+        else if(currentState == state10){weCounter++}
+        else if(currentState == state8){elseCounter++}
+        else if(currentState == state5){ebayCounter++}
+    }
+    
+    return childrenValidation;
+}
+
+/*Function to validate if the current state is final state type*/
+function isFinalState(currentState){
+    let finalStates = [state27, state25, state19, state15, state11, state10, state8, state5];
+    for(let s = 0; s < finalStates.length; s++){
+        if(currentState == finalStates[s]){
+            return true;
+        }else{
+            return false
+        }
+    }
+}
+
+export default setText;
 
 
 
