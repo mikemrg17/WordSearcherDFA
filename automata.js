@@ -43,8 +43,7 @@ let state1 = {name: "1", access: "", children: [state2,state9], type: "initialSt
 
 //CURRENT STATE
 /*Initial state is state1*/
-let currentState = state1;
-let nextState;
+let currentState;
 
 //FUNCTIONALITY
 let text;
@@ -52,56 +51,77 @@ let index;
 /*Set the data received to a local variable*/
 function setText(data){
     text = data;
+    currentState = state1;
     index = 0;
-    path = "path: ";
+    path = "path: Incio";
     findWords(index, currentState);
 }
 
 function findWords(index, currentState){
+    console.log(currentState.name);
     if(index == text.length-1){
         console.log(path);
+        console.log("webCounter: " + webCounter);
+        console.log("weCounter: " + weCounter);
+        console.log("webayCounter: " + webayCounter);
+        console.log("ebayCounter: " + ebayCounter);
+        console.log("elseCounter: " + elseCounter);
+        console.log("webMasterCounter: " + webMasterCounter);
+        console.log("webPageCounter: " + webPageCounter);
+        console.log("webSiteCounter: " + webSiteCounter);
+
         console.log("Process completed");
     }else{
-        /*1. Validar si tiene hijos es estado*/
-        if(hasChildren(currentState) != false ){
-            console.log("has children");  
+        /*1. Validar si tiene hijos el estado*/
+        if(hasChildren(currentState) == true ){
+            //console.log("has children");
+            /*2. Validar si es estado final o no */
+            if(isFinalState(currentState) == true){
+                console.log("Es estado final");
+                increaseWordsCounters(currentState);
+
+                for(let c = 0; c < currentState.children.length; c++){
+                    if(text[index] == currentState.children[c].access){
+                        //let currentStateChildren = currentState.children[c];
+                        currentState = currentState.children[c];
+                        //console.log(currentState.name);
+                        let stateTransition = " -> " + currentState.name;
+                        path += stateTransition;
+                        break;
+                    }
+                }
+
+            }else{
+                console.log("No es estado final");
+                for(let c = 0; c < currentState.children.length; c++){
+                    if(text[index] == currentState.children[c].access){
+                        //let currentStateChildren = currentState.children[c];
+                        currentState = currentState.children[c];
+                        //console.log(currentState.name);
+                        let stateTransition = " -> " + currentState.name;
+                        path += stateTransition;
+                        break;
+                    }
+                }
+            }
         }else{
-            console.log("No children");
+            increaseWordsCounters(currentState);
+            console.log("has NO children");
+            console.log("Es estado final");
+            //Estos siempre son estados finales
         }
         findWords(++index,currentState);
     }
 }
 
-/*for(let c = 0; c < currentState.children.length; c++){
-                console.log("Primer for");
-                if(text[index] == currentState.children[c].access){
-                    currentState = currentState.children[c];
-                    console.log(currentState.name);
-                    path = path + "->" +  currentState.name;
-                    break;
-                }else{
-                    currentState = state1;
-                }
-            } */
-
-/*Function to validate if the current state has children*/ 
+/*Function to validate if the current state has children*/
 function hasChildren(currentState){
     let childrenValidation;
-    if(currentState.children.length = 0){
+    
+    if(currentState.children.length < 1){
         childrenValidation = false;
     }else{
         childrenValidation = true;
-    }
-    
-    if(isFinalState(currentState) == true){
-        if(currentState == state27){webayCounter++;}
-        else if(currentState == state25){webMasterCounter++}
-        else if(currentState == state19){webPageCounter++}
-        else if(currentState == state15){webSiteCounter++}
-        else if(currentState == state11){webCounter++}
-        else if(currentState == state10){weCounter++}
-        else if(currentState == state8){elseCounter++}
-        else if(currentState == state5){ebayCounter++}
     }
     
     return childrenValidation;
@@ -110,13 +130,28 @@ function hasChildren(currentState){
 /*Function to validate if the current state is final state type*/
 function isFinalState(currentState){
     let finalStates = [state27, state25, state19, state15, state11, state10, state8, state5];
+    let finalStateFlag = 0;
     for(let s = 0; s < finalStates.length; s++){
         if(currentState == finalStates[s]){
-            return true;
-        }else{
-            return false
+            finalStateFlag++;
         }
     }
+    if(finalStateFlag > 0){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+function increaseWordsCounters(currentState){
+    if(currentState == state27){webayCounter++;}
+    else if(currentState == state25){webMasterCounter++}
+    else if(currentState == state19){webPageCounter++}
+    else if(currentState == state15){webSiteCounter++}
+    else if(currentState == state11){webCounter++}
+    else if(currentState == state10){weCounter++}
+    else if(currentState == state8){elseCounter++}
+    else if(currentState == state5){ebayCounter++}
 }
 
 export default setText;
