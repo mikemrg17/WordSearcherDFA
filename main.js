@@ -5,8 +5,6 @@ import setText from '/automata.js';
 let data;
 const input = document.querySelector('input');
 
-console.log("Welcome to the word searcher");
-
 //File reader
 input.addEventListener('change', readFileAsText);
 
