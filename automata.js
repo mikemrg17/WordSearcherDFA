@@ -1,3 +1,5 @@
+import saveAs from './FileSaver.js';
+
 //Words COUNTERS
 let webCounter = 0;
 let weCounter = 0;
@@ -166,7 +168,8 @@ function increaseWordsCounters(currentState){
 }
 
 function generateOutputFile(path){
-    generateFile.newFile(path);
+    let blob = new Blob([path.toString()], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "output.txt");
 } 
 
 export default setText;
