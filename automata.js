@@ -168,7 +168,16 @@ function increaseWordsCounters(currentState){
 }
 
 function generateOutputFile(path){
-    let blob = new Blob([path.toString()], {type: "text/plain;charset=utf-8"});
+    let blob = new Blob([path.toString()
+        +"\n\n" + "CONTADORES: \n" +
+        `        We: ${weCounter},
+        Web: ${webCounter},
+        Webay: ${webayCounter},
+        webmaster: ${webMasterCounter},
+        webpage: ${webPageCounter}, 
+        website: ${webSiteCounter},
+        ebay: ${ebayCounter}, 
+        else: ${elseCounter}`], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "output.txt");
 } 
 

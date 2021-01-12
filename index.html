@@ -4,9 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word searcher Automata</title>
+
+    <script
+        type="text/javascript"
+        src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+    <style type="text/css">
+        #mynetwork {
+        width: 600px;
+        height: 400px;
+        border: 1px solid lightgray;}
+    </style>
 </head>
 <body>
-    <input type="file" id="fileToRead" accept=".c, .txt"/>
+    <div>
+        <input type="file" id="fileToRead" accept=".c, .txt"/>
+    </div>
+    
+    <div id="mynetwork"></div>
+    <script type="text/javascript">
+        var container = document.getElementById("mynetwork");
+        var dot = "dinetwork {node[shape=circle]; 1 -> 1 -> 2; 2 -> 3; 2 -> 4; 2 -> 1; 4->5}";
+        var data = vis.parseDOTNetwork(dot);
+        var network = new vis.Network(container, data);
+    </script>
     <script src="./main.js" type="module"></script>
 </body>
 </html>
