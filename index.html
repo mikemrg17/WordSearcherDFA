@@ -4,16 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word searcher Automata</title>
-
+    <script src="jquery-3.5.1.min.js"></script>
     <script
         type="text/javascript"
         src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
     ></script>
     <style type="text/css">
+        body, html {
+            font: 10pt sans;
+            line-height: 1.5em;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            color: #4d4d4d;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        #header {
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #contents {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        #left, #right {
+            position: absolute;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            display: inline-block;
+        }
+
+        #left {
+            width: 40%;
+            height: 80%;
+            top: 0;
+            left: 0;
+        }
+
+        #right {
+            width: 60%;
+            height: 100%;
+            top: 0;
+            right: 0;
+        }
+
+        #error {
+            color: red;
+        }
+
+        #data {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #d3d3d3;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        #draw, #reset {
+            padding: 5px 15px;
+        }
+
         #mynetwork {
-        width: 600px;
-        height: 400px;
-        border: 1px solid lightgray;}
+            width: 100%;
+            height: 100%;
+            border: 1px solid #d3d3d3;
+            box-sizing: border-box;
+        }
+
+        a:hover {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -21,12 +91,237 @@
         <input type="file" id="fileToRead" accept=".c, .txt"/>
     </div>
     
-    <div id="mynetwork"></div>
+    <div id="header">
+        <div id="contents">
+            <div id="left">
+                <textarea id="data"></textarea>
+                <div>
+                <button id="draw" title="Draw the DOT graph (Ctrl+Enter)">Draw</button>
+                <button id="reset" title="Reset the DOT graph">Reset</button>
+                </div>
+                <div>
+                    <span id="error"></span>
+                </div>
+            </div>
+            <div id="right">
+                <div id="mynetwork">
+            </div>
+        </div>
+    </div>
     <script type="text/javascript">
+        var dotDefault =
+            "digraph {\n" +
+            " // Parent nodes\n" +
+            ' state1[label="1"]; \n' +
+            "\n" +
+            " // Children nodes\n" +
+            ' state2[label="1,2"]; \n' +
+            ' state3[label="1,3"]; \n' +
+            ' state4[label="1,4"]; \n' +
+            ' state5[label="1,5"]; \n' +
+            ' state6[label="1,6"]; \n' +
+            ' state7[label="1,7"]; \n' +
+            ' state8[label="1,2,8"]; \n' +
+            ' state9[label="1,9"]; \n' +
+            ' state10[label="1,2,10"]; \n' +
+            ' state11[label="1,3,11"]; \n' +
+            ' state12[label="1,12"]; \n' +
+            ' state13[label="1,13"]; \n' +
+            ' state14[label="1,14"]; \n' +
+            ' state15[label="1,2,15"]; \n' +
+            ' state16[label="1,16"]; \n' +
+            ' state17[label="1,17"]; \n' +
+            ' state18[label="1,18"]; \n' +
+            ' state19[label="1,2,19"]; \n' +
+            ' state20[label="1,20"]; \n' +
+            ' state21[label="1,21"]; \n' +
+            ' state22[label="1,22"]; \n' +
+            ' state23[label="1,23"]; \n' +
+            ' state24[label="1,2,24"]; \n' +
+            ' state25[label="1,25"]; \n' +
+            ' state26[label="1,4,26"]; \n' +
+            ' state27[label="1,5,27"]; \n' +
+
+
+            "\n" +
+            " // Arrowhead styles\n" +
+            ' state1 -> state1[label="Σ-e-w", arrowhead=normal]; \n' +
+            ' state1 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state1 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state2 -> state3[label="b", arrowhead=normal]; \n' +
+            ' state2 -> state6[label="l", arrowhead=normal]; \n' +
+            ' state2 -> state1[label="Σ-e-w-b-l", arrowhead=normal]; \n' +
+            ' state2 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state2 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state3 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state3 -> state4[label="a", arrowhead=normal]; \n' +
+            ' state3 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state3 -> state1[label="Σ-w-e-a", arrowhead=normal]; \n' +
+            ' state4 -> state1[label="Σ-w-e-y", arrowhead=normal]; \n' +
+            ' state4 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state4 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state4 -> state5[label="y", arrowhead=normal]; \n' +
+            ' state5 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state5 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state5 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state6 -> state1[label="Σ-w-e-s", arrowhead=normal]; \n' +
+            ' state6 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state6 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state6 -> state7[label="s", arrowhead=normal]; \n' +
+            ' state7 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state7 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state7 -> state8[label="e", arrowhead=normal]; \n' +
+            ' state8 -> state1[label="Σ-w-e-b-l", arrowhead=normal]; \n' +
+            ' state8 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state8 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state8 -> state3[label="b", arrowhead=normal]; \n' +
+            ' state8 -> state6[label="l", arrowhead=normal]; \n' +
+            ' state9 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state9 -> state10[label="e", arrowhead=normal]; \n' +
+            ' state9 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state10 -> state1[label="Σ-w-e-b-l", arrowhead=normal]; \n' +
+            ' state10 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state10 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state10 -> state3[label="b", arrowhead=normal]; \n' +
+            ' state10 -> state6[label="l", arrowhead=normal]; \n' +
+            ' state11 -> state1[label="Σ-w-e-a-s-p-m", arrowhead=normal]; \n' +
+            ' state11 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state11 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state11 -> state12[label="s", arrowhead=normal]; \n' +
+            ' state11 -> state16[label="p", arrowhead=normal]; \n' +
+            ' state11 -> state20[label="m", arrowhead=normal]; \n' +
+            ' state11 -> state26[label="a", arrowhead=normal]; \n' +
+            ' state12 -> state1[label="Σ-w-e-i", arrowhead=normal]; \n' +
+            ' state12 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state12 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state12 -> state13[label="i", arrowhead=normal]; \n' +
+            ' state13 -> state1[label="Σ-w-e-t", arrowhead=normal]; \n' +
+            ' state13 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state13 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state13 -> state14[label="t", arrowhead=normal]; \n' +
+            ' state14 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state14 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state14 -> state15[label="e", arrowhead=normal]; \n' +
+            ' state15 -> state1[label="Σ-w-e-b-l", arrowhead=normal]; \n' +
+            ' state15 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state15 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state15 -> state3[label="Σ-b", arrowhead=normal]; \n' +
+            ' state15 -> state6[label="l", arrowhead=normal]; \n' +
+            ' state16 -> state1[label="Σ-w-e-a", arrowhead=normal]; \n' +
+            ' state16 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state16 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state16 -> state17[label="a", arrowhead=normal]; \n' +
+            ' state17 -> state1[label="Σ-w-e-g", arrowhead=normal]; \n' +
+            ' state17 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state17 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state17 -> state18[label="g", arrowhead=normal]; \n' +
+            ' state18 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state18 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state18 -> state19[label="e", arrowhead=normal]; \n' +
+            ' state19 -> state1[label="Σ-w-e-b-l", arrowhead=normal]; \n' +
+            ' state19 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state19 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state19 -> state3[label="b", arrowhead=normal]; \n' +
+            ' state19 -> state6[label="l", arrowhead=normal]; \n' +
+            ' state20 -> state1[label="Σ-w-e-a", arrowhead=normal]; \n' +
+            ' state20 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state20 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state20 -> state21[label="a", arrowhead=normal]; \n' +
+            ' state21 -> state1[label="Σ-w-e-s", arrowhead=normal]; \n' +
+            ' state21 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state21 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state21 -> state22[label="s", arrowhead=normal]; \n' +
+            ' state22 -> state1[label="Σ-w-e-t", arrowhead=normal]; \n' +
+            ' state22 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state22 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state22 -> state23[label="t", arrowhead=normal]; \n' +
+            ' state23 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state23 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state23 -> state24[label="e", arrowhead=normal]; \n' +
+            ' state24 -> state1[label="Σ-w-e-b-l-r", arrowhead=normal]; \n' +
+            ' state24 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state24 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state24 -> state3[label="b", arrowhead=normal]; \n' +
+            ' state24 -> state6[label="l", arrowhead=normal]; \n' +
+            ' state24 -> state25[label="r", arrowhead=normal]; \n' +
+            ' state25 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state25 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state25 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state26 -> state1[label="Σ-w-e-y", arrowhead=normal]; \n' +
+            ' state26 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state26 -> state2[label="e", arrowhead=normal]; \n' +
+            ' state26 -> state27[label="y", arrowhead=normal]; \n' +
+            ' state27 -> state1[label="Σ-w-e", arrowhead=normal]; \n' +
+            ' state27 -> state9[label="w", arrowhead=normal]; \n' +
+            ' state27 -> state2[label="e", arrowhead=normal]; \n' +
+            "}";
+
+        // create a network
         var container = document.getElementById("mynetwork");
-        var dot = "dinetwork {node[shape=circle]; 1 -> 1 -> 2; 2 -> 3; 2 -> 4; 2 -> 1; 4->5}";
-        var data = vis.parseDOTNetwork(dot);
-        var network = new vis.Network(container, data);
+        var options = {
+            physics: {
+                stabilization: false,
+                barnesHut: {
+                    springLength: 200,
+                },
+            },
+        };
+        var data = {};
+        var network = new vis.Network(container, data, options);
+
+        $("#draw").click(draw);
+        $("#reset").click(reset);
+
+        $(window).resize(resize);
+        $(window).on("load",draw);
+
+        $("#data").keydown(function (event) {
+            if (event.ctrlKey && event.keyCode === 13) {
+                // Ctrl+Enter
+                draw();
+                event.stopPropagation();
+                event.preventDefault();
+            }
+        });
+
+        function resize() {
+            $("#contents").height($("body").height() - $("#header").height() - 30);
+        }
+
+        function draw() {
+            try {
+                resize();
+                $("#error").html("");
+
+                // Provide a string with data in DOT language
+                data = vis.parseDOTNetwork($("#data").val());
+
+                network.setData(data);
+            }catch(err) {
+                // set the cursor at the position where the error occurred
+                var match = /\(char (.*)\)/.exec(err);
+                if (match) {
+                    var pos = Number(match[1]);
+                    var textarea = $("#data")[0];
+                    if (textarea.setSelectionRange) {
+                        textarea.focus();
+                        textarea.setSelectionRange(pos, pos);
+                    }
+                }
+
+                // show an error message
+                $("#error").html(err.toString());
+            }
+        }
+
+        function reset() {
+            $("#data").val(dotDefault);
+            draw();
+        }
+
+        window.onload = function () {
+            reset();
+        };
     </script>
     <script src="./main.js" type="module"></script>
 </body>
